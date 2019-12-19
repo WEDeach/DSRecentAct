@@ -10,6 +10,7 @@ Osu! Sync.exe Plugin
 
 
 ## MMF
-| DSRA-ppRank | PP排名 
-| DSRA-totalScore | 總成績 
-| ------------- | ------------- |
+| MMF Name | Description | 
+|:---------|:---------|
+| DSRA-ppRank | PP排名 | 
+| DSRA-totalScore | 總成績 |
