@@ -13,7 +13,7 @@ namespace DSRecentAct.Model
         public static Sync.Tools.PluginConfigurationManager config_manager;
         public static DSRASetting Setting = new DSRASetting();
 
-        public static List<OsuPlayer> OPD = new List<OsuPlayer>();
+        public static OsuPlayer OPD = new OsuPlayer();
 
         public static MmfModel mmf = new MmfModel();
     }

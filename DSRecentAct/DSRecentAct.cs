@@ -64,7 +64,7 @@ namespace DSRecentAct
 
         private void InitSourceEvent(PluginEvents.InitSourceEvent e)
         {
-            Logger.LogInfomation($"{e.Sources}");
+            //Logger.LogInfomation($"{e.Sources}");
         }
 
         private void OnAllPluginLoadedFinish(PluginEvents.LoadCompleteEvent e)
@@ -99,7 +99,7 @@ namespace DSRecentAct
             if (isReplayMode || isUnRankMode) return;
             OsuUserName = player;
             Logger.LogInfomation($"OnPlayerChanged: {OsuUserName}");
-            if (ReflectorModel.OPD.Count == 0)
+            if (ReflectorModel.OPD.Data.Count == 0)
             {
                 var od = ReflectorModel.OsuApi.GetOsuPlayer(OsuUserName);
                 CheckPlayerData(od);
@@ -139,19 +139,21 @@ namespace DSRecentAct
             Logger.LogInfomation($"OnStatusChange: 狀態:{status}");
             if ((last_status == OsuStatus.Playing) && (status == OsuStatus.Rank) && ((!isReplayMode && !isUnRankMode) || Setting.DebugMode))
             {
+                var loopc = 0;
                 update_s:
                 System.Threading.Thread.Sleep(5000);
                 var od = ReflectorModel.OsuApi.GetOsuPlayer(OsuUserName);
                 Logger.LogInfomation($"分數:{od.totalScore}");
-                if (ReflectorModel.OPD.Count == 0 || od.totalScore != ReflectorModel.OPD.Last().totalScore)
+                if (ReflectorModel.OPD.Data.Count == 0 || od.totalScore != ReflectorModel.OPD.Data.Last().totalScore)
                 {
                     CheckPlayerData(od);
                 }
                 else
                 {
-                    goto update_s;
+                    loopc++;
+                    if (!Setting.DebugMode && loopc <= 5) goto update_s;
                 }
-                Logger.LogInfomation($"成績目前共有 {ReflectorModel.OPD.Count} 個");
+                //Logger.LogInfomation($"成績目前共有 {ReflectorModel.OPD.Count} 個");
             }
             else if ((last_status == OsuStatus.Rank) && (status == OsuStatus.Playing))
             {
@@ -207,29 +209,57 @@ namespace DSRecentAct
 
         private bool HandleCommands(Arguments args)
         {
-            foreach (string param in args)
+            var reply = "{CMD_DEF_REPLY_MSG}";
+            if(args.Count > 0)
             {
-                //logger.LogInfomation("param:" + param);
+                switch (args[0])
+                {
+                    case "ud":
+                        ReflectorModel.mmf.UpdateMmf();
+                        reply = "OK.";
+                        break;
+                    default:
+                        reply = "未知指令";
+                        break;
+                }
             }
 
-            //发送MySimpleEvent事件，将调用各个绑定到此事件的回调
-            Logger.LogInfomation("nOT fOUNd");
+            Logger.LogInfomation(reply);
 
             return true;
         }
 
-        private void CheckPlayerData(OsuPlayer player)
+        private void CheckPlayerData(OsuPlayerData player)
         {
-            Logger.LogInfomation($"分數更新:{player.totalScore}");
-            Logger.LogInfomation($"rank:{player.ppRank}");
-            ReflectorModel.OPD.Add(player);
+            if (Setting.DebugMode)
+            {
+                Logger.LogInfomation($"分數更新: {player.totalScore}");
+                Logger.LogInfomation($"rank: {player.ppRank}");
+            }
+            ReflectorModel.OPD.Data.Add(player);
             ReflectorModel.mmf.UpdateMmf();
             SavePlayerData();
         }
 
+        public static string JSON_DATA_VERSION = "v1.1.0";
         private void GetPlayerData()
         {
-            if(File.Exists(@"./DSRA_PD.json")) ReflectorModel.OPD = JsonConvert.DeserializeObject<List<OsuPlayer>>(File.ReadAllText(@"../DSRA_PD.json"));
+            if (File.Exists(@"../DSRA_PD.json")) try
+                {
+                ReflectorModel.OPD = JsonConvert.DeserializeObject<OsuPlayer>(File.ReadAllText(@"../DSRA_PD.json"));
+            }
+            catch (JsonSerializationException)
+            {
+                    switch (ReflectorModel.OPD.DataVersion)
+                    {
+                        case "v1.0.0":
+                            ReflectorModel.OPD.Data = JsonConvert.DeserializeObject<List<OsuPlayerData>>(File.ReadAllText(@"../DSRA_PD.json"));
+                            ReflectorModel.OPD.DataVersion = JSON_DATA_VERSION;
+                            break;
+                    }
+            }
+            
+            Logger.LogInfomation($"JSON資料: {ReflectorModel.OPD.DataVersion}");
         }
         private void SavePlayerData()
         {
@@ -242,7 +272,7 @@ namespace DSRecentAct
         public override void OnExit()
         {
             ReflectorModel.mmf.OnDisable();
-            SavePlayerData();
+            //SavePlayerData();
         }
     }
 }

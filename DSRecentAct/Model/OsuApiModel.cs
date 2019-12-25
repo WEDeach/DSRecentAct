@@ -18,12 +18,12 @@ namespace DSRecentAct.Model
             if (!string.IsNullOrEmpty(a)) token = a;
         }
 
-        public OsuPlayer GetOsuPlayer(string name)
+        public OsuPlayerData GetOsuPlayer(string name)
         {
             if (string.IsNullOrEmpty(token)) {
                 //wait...
                 Logger.LogInfomation($"無法取得UserData, 請設置Osu API Token!");
-                return new OsuPlayer();
+                return new OsuPlayerData();
             }
             var url = $"https://osu.ppy.sh/api/get_user?k={token}&u={name}";
             WebClient a = new WebClient();
@@ -31,18 +31,34 @@ namespace DSRecentAct.Model
             string b = a.DownloadString(url);
             if (b != null)
             {
-                List<OsuPlayer> c = JsonConvert.DeserializeObject<List<OsuPlayer>>(b);
+                List<OsuPlayerData> c = JsonConvert.DeserializeObject<List<OsuPlayerData>>(b);
                 return c[0];
             }
             else
             {
                 Logger.LogInfomation($"無法取得用戶資料(error-20)");
             }
-            return new OsuPlayer();
+            return new OsuPlayerData();
         }
     }
 
     public class OsuPlayer
+    {
+        [JsonProperty("data")]
+        public List<OsuPlayerData> Data { get; set; }
+
+        [JsonProperty("data_version")]
+        public string DataVersion { get; set; } = "v1.0.0";
+
+        [JsonProperty("last_pp_rank_change")]
+        public string LastPPRankChange { get; set; } = "0";
+
+        [JsonProperty("last_pp_country_ranking_change")]
+        public string LastPPCountryRankChange { get; set; } = "0";
+
+    }
+
+    public class OsuPlayerData
     {
         [JsonProperty("user_id")]
         public int userId { get; set; }
