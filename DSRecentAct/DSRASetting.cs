@@ -49,5 +49,8 @@ namespace DSRecentAct
     {
         public static string OsuApiToken = "";
         public static bool DebugMode = false;
+
+        public static object SongsPath { get; internal set; }
+        public static string ForceOsuSongsDirectory { get; internal set; }
     }
 }

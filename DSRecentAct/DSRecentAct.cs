@@ -18,8 +18,10 @@ using static OsuRTDataProvider.Listen.OsuListenerManager;
 
 namespace DSRecentAct
 {
+    [SyncPluginID("607a03aa-23c5-4ba4-b28d-c63f4ba2d013", PLUGIN_VERSION)]
     public class DSRecentAct : Plugin
     {
+        public const string PLUGIN_VERSION = "1.0.5";
         private OsuListener OsuListener;
 
         private string OsuUserName;
@@ -36,6 +38,7 @@ namespace DSRecentAct
         private bool isUnRankMode = false;
         private ModsInfo current_mod;
 
+        private bool selfORTDP = true;
 
         public DSRecentAct() : base("DSRecentAct", "DeachSword")
         {
@@ -124,34 +127,49 @@ namespace DSRecentAct
 
         public void TryFixStatusChange()
         {
-            var now_status = ReflectorModel.ORTDP.ListenerManager.GetCurrentOsuStatus();
-            if(now_status != currentStatus)
+            try
             {
-                Logger.LogInfomation($"狀態不同步...");
-                OnStatusChange(currentStatus, now_status);
+                var now_status = ReflectorModel.ORTDP.ListenerManager.GetCurrentOsuStatus();
+                selfORTDP = true;
+                if (now_status != currentStatus)
+                {
+                    if (Setting.DebugMode) Logger.LogInfomation($"狀態不同步...");
+                    OnStatusChange(currentStatus, now_status);
+                }
             }
+            catch (Exception)
+            {
+                if (selfORTDP) {
+                    Logger.Error($"由於不是使用專用的ORTDP插件, 可能無法正常運行");
+                    selfORTDP = false;
+                }
+            }
+            
         }
         private void OnStatusChange(OsuStatus last_status, OsuStatus status)
         {
             currentStatus = status;
             lastStatus = last_status;
             if (last_status == status) return;
-            Logger.LogInfomation($"OnStatusChange: 狀態:{status}");
-            if ((last_status == OsuStatus.Playing) && (status == OsuStatus.Rank) && ((!isReplayMode && !isUnRankMode) || Setting.DebugMode))
+            if(Setting.DebugMode) Logger.LogInfomation($"OnStatusChange: 狀態:{status}");
+            if (((selfORTDP && last_status == OsuStatus.Playing && status == OsuStatus.Rank) || (!selfORTDP && last_status == OsuStatus.Playing && status == OsuStatus.SelectSong)) && ((!isReplayMode && !isUnRankMode) || Setting.DebugMode))
             {
                 var loopc = 0;
+                var loopmc = 5;
+                if (!selfORTDP) loopmc = 0;
                 update_s:
                 System.Threading.Thread.Sleep(5000);
                 var od = ReflectorModel.OsuApi.GetOsuPlayer(OsuUserName);
-                Logger.LogInfomation($"分數:{od.totalScore}");
                 if (ReflectorModel.OPD.Data.Count == 0 || od.totalScore != ReflectorModel.OPD.Data.Last().totalScore)
                 {
+                    Logger.LogInfomation($"分數:{od.totalScore}");
                     CheckPlayerData(od);
                 }
                 else
                 {
                     loopc++;
-                    if (!Setting.DebugMode && loopc <= 5) goto update_s;
+                    if (!isReplayMode && !isUnRankMode && loopc <= loopmc) goto update_s;
+                    Logger.Error($"無法獲得成績...");
                 }
                 //Logger.LogInfomation($"成績目前共有 {ReflectorModel.OPD.Count} 個");
             }

@@ -43,6 +43,7 @@ namespace DSRecentAct.Model
             {
                 _mmfs[_mmfName.IndexOf(_mmfn)] = MemoryMappedFile.CreateOrOpen(_mmfn, 1024);
             }
+            UpdateMmf();
         }
 
         public void UpdateMmf()
@@ -102,6 +103,10 @@ namespace DSRecentAct.Model
             else
             {
                 Logger.LogInfomation($"資料數為0...");
+                foreach(var sw in streamWriters)
+                {
+                    sw.Write(" ?");
+                }
             }
 
             foreach (var c in streamWriters)
