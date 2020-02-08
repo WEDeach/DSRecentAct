@@ -12,7 +12,7 @@ Osu! Sync.exe Plugin
 
 ## MMF
 | MMF Name | Description | Preview | 
-|:---------|:---------|
+|:---------|:---------|:---------|
 | DSRA-ppRank | PP排名 | 1234567 |
 | DSRA-totalScore | 總成績 | 1234567890 |
 | DSRA-acc | ACC | 98.7654321 |
@@ -28,8 +28,8 @@ Osu! Sync.exe Plugin
 | DSRA-rankedScore | 總RK成績 | 1234567 |
 | DSRA-countRankSH | Rank SH count | 1234567 |
 | DSRA-countRankSSH | Rank SSH count | 1234567 |
-| DSRA-RE | 最新RK資訊 | LOLICON achieved rank 516 on Nanahira - Chikatto Chika Chika [Hard] |
+| DSRA-RE | 最新RK資訊 | LOLICON achieved rank 516 on Nanahira - Chikatto Chika Chika |
 | DSRA-RE-A | 最新RK資訊(排名資訊) | 516 |
-| DSRA-RE-B | 最新RK資訊(圖譜名稱) |  Nanahira - Chikatto Chika Chika [Hard] |
+| DSRA-RE-B | 最新RK資訊(圖譜名稱) |  Nanahira - Chikatto Chika Chika |
 | DSRA-ppRank-g | PP排名進步值 | +123 |
 | DSRA-ppCountryRank-g | 國家排名進步值 | (-99)) |
