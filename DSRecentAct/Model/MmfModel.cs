@@ -56,11 +56,12 @@ namespace DSRecentAct.Model
                 streamWriters[b] = new StreamWriter(_mmfs[b].CreateViewStream());
             }
 
-            if(ReflectorModel.OPD.Data.Count > 0)
+            if (Setting.DebugMode) Logger.LogInfomation($"更新MMF資料...");
+            if (ReflectorModel.OPD.Data.Count > 0)
             {
+                if (Setting.DebugMode) Logger.LogInfomation($"取得目前成績...");
                 OsuPlayerData player = ReflectorModel.OPD.Data.Last(); //get last player data
-
-                //hmmm...
+                if (Setting.DebugMode) Logger.LogInfomation($"準備更新{streamWriters.Length}筆MMF資料...");
                 streamWriters[1].Write(player.ppRank.ToString());
                 streamWriters[2].Write(player.totalScore);
                 streamWriters[3].Write(player.Accuracy);
@@ -76,17 +77,25 @@ namespace DSRecentAct.Model
                 streamWriters[13].Write(player.rankedScore);
                 streamWriters[14].Write(player.countRankSH);
                 streamWriters[15].Write(player.countRankSSH);
-                //var d = "";
-                var er = Regex.Match(player.Events[0].displayHtml, @"\<img src='\\/images\\/*(?<Rank>.*?)_small.png'\\/\>", RegexOptions.IgnoreCase).Groups["Rank"].Value;
-                var eu = Regex.Match(player.Events[0].displayHtml, @"\<a href='\/u\/[^']*'\>(?<Rank>.*?)\<\/a\>", RegexOptions.IgnoreCase).Groups["Rank"].Value;
-                var erk = Regex.Match(player.Events[0].displayHtml, @"achieved rank *(?<Rank>.*?) on ", RegexOptions.IgnoreCase).Groups["Rank"].Value;
-                var est = Regex.Match(player.Events[0].displayHtml, @"\<a href='\/b\/[^']*'\>(?<Rank>.*?)\<\/a\>", RegexOptions.IgnoreCase).Groups["Rank"].Value;
-                streamWriters[16].Write($"{eu} achieved rank {erk} on {est}");
-                streamWriters[17].Write($"{eu} achieved rank {erk}"); // A
-                streamWriters[18].Write($"{est}"); // B
+
+                if(player.Events.Count > 0)
+                {
+                    if (Setting.DebugMode) Logger.LogInfomation($"取得RK資料... 資料共有{player.Events.Count}筆");
+                    //var d = "";
+                    var er = Regex.Match(player.Events[0].displayHtml, @"\<img src='\\/images\\/*(?<Rank>.*?)_small.png'\\/\>", RegexOptions.IgnoreCase).Groups["Rank"].Value;
+                    var eu = Regex.Match(player.Events[0].displayHtml, @"\<a href='\/u\/[^']*'\>(?<Rank>.*?)\<\/a\>", RegexOptions.IgnoreCase).Groups["Rank"].Value;
+                    var erk = Regex.Match(player.Events[0].displayHtml, @"achieved rank *(?<Rank>.*?) on ", RegexOptions.IgnoreCase).Groups["Rank"].Value;
+                    var est = Regex.Match(player.Events[0].displayHtml, @"\<a href='\/b\/[^']*'\>(?<Rank>.*?)\<\/a\>", RegexOptions.IgnoreCase).Groups["Rank"].Value;
+                    if (Setting.DebugMode) Logger.LogInfomation($"取得RK資料完成! 繼續更新mmf...");
+                    streamWriters[16].Write($"{eu} achieved rank {erk} on {est}");
+                    streamWriters[17].Write($"{eu} achieved rank {erk}"); // A
+                    streamWriters[18].Write($"{est}"); // B
+                    if (Setting.DebugMode) Logger.LogInfomation($"RK mmf資料更新完成! 繼續更新mmf...");
+                }
 
                 if (ReflectorModel.OPD.Data.Count > 1)
                 {
+                    if (Setting.DebugMode) Logger.LogInfomation($"比對前一筆成績...");
                     var f = ReflectorModel.OPD.Data[ReflectorModel.OPD.Data.Count - 2]; //get prev of last player data(?
                     var gap = (f.ppRank - player.ppRank).ToString();
                     var gap2 = (f.ppCountryRank - player.ppCountryRank).ToString();
@@ -95,10 +104,11 @@ namespace DSRecentAct.Model
                     if (f.ppRank - player.ppRank != 0) ReflectorModel.OPD.LastPPRankChange = $"{gap}";
                     if (f.ppCountryRank - player.ppCountryRank != 0) ReflectorModel.OPD.LastPPCountryRankChange = $"{gap2}";
 
-
+                    if (Setting.DebugMode) Logger.LogInfomation($"比對完成");
                 }
                 streamWriters[19].Write($"({ReflectorModel.OPD.LastPPRankChange})");
                 streamWriters[20].Write($"({ReflectorModel.OPD.LastPPCountryRankChange})");
+                if (Setting.DebugMode) Logger.LogInfomation($"更新MMF完成");
             }
             else
             {
@@ -114,7 +124,8 @@ namespace DSRecentAct.Model
                 c.Write('\0');
                 c.Dispose();
             }
-            //Logger.LogInfomation($"更新mmf完成!");
+
+            if (Setting.DebugMode) Logger.LogInfomation($"更新MMF完成");
         }
 
         public void Clear()

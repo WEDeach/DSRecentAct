@@ -21,7 +21,7 @@ namespace DSRecentAct
     [SyncPluginID("607a03aa-23c5-4ba4-b28d-c63f4ba2d013", PLUGIN_VERSION)]
     public class DSRecentAct : Plugin
     {
-        public const string PLUGIN_VERSION = "1.0.5";
+        public const string PLUGIN_VERSION = "1.0.6";
         private OsuListener OsuListener;
 
         private string OsuUserName;
@@ -162,16 +162,15 @@ namespace DSRecentAct
                 var od = ReflectorModel.OsuApi.GetOsuPlayer(OsuUserName);
                 if (ReflectorModel.OPD.Data.Count == 0 || od.totalScore != ReflectorModel.OPD.Data.Last().totalScore)
                 {
-                    Logger.LogInfomation($"分數:{od.totalScore}");
+                    if (ReflectorModel.OPD.Data.Count > 0) Logger.LogInfomation($"原分數:{ReflectorModel.OPD.Data.Last().totalScore}");
                     CheckPlayerData(od);
                 }
                 else
                 {
                     loopc++;
                     if (!isReplayMode && !isUnRankMode && loopc <= loopmc) goto update_s;
-                    Logger.Error($"無法獲得成績...");
+                    if (Setting.DebugMode) Logger.Error($"無法獲得成績...");
                 }
-                //Logger.LogInfomation($"成績目前共有 {ReflectorModel.OPD.Count} 個");
             }
             else if ((last_status == OsuStatus.Rank) && (status == OsuStatus.Playing))
             {
