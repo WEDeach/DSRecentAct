@@ -45,6 +45,9 @@
     <Compile Include="DSRASetting.cs" />
     <Compile Include="DSRecentAct.cs" />
     <Compile Include="Listener\OsuListener.cs" />
+    <Compile Include="Memory\MemoryFinder.cs" />
+    <Compile Include="Memory\OsuEnterKey.cs" />
+    <Compile Include="Memory\SigScan.cs" />
     <Compile Include="Model\MmfModel.cs" />
     <Compile Include="Model\OsuApiModel.cs" />
     <Compile Include="Model\ReflectorModel.cs" />

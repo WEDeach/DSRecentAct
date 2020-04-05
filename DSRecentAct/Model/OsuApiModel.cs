@@ -31,8 +31,17 @@ namespace DSRecentAct.Model
             string b = a.DownloadString(url);
             if (b != null)
             {
-                List<OsuPlayerData> c = JsonConvert.DeserializeObject<List<OsuPlayerData>>(b);
-                return c[0];
+                try
+                {
+                    List<OsuPlayerData> c = JsonConvert.DeserializeObject<List<OsuPlayerData>>(b);
+                    return c[0];
+                }
+                catch (Exception)
+                {
+                    Logger.Error($"[無法解析成績]{b}");
+
+                }
+                
             }
             else
             {
@@ -45,7 +54,7 @@ namespace DSRecentAct.Model
     public class OsuPlayer
     {
         [JsonProperty("data")]
-        public List<OsuPlayerData> Data { get; set; }
+        public List<OsuPlayerData> Data { get; set; } = new List<OsuPlayerData>();
 
         [JsonProperty("data_version")]
         public string DataVersion { get; set; } = "v1.0.0";
@@ -56,6 +65,21 @@ namespace DSRecentAct.Model
         [JsonProperty("last_pp_country_ranking_change")]
         public string LastPPCountryRankChange { get; set; } = "0";
 
+        [JsonProperty("last_best_pp_rank")]
+        public BestRank LastBestPPRank { get; set; } = new BestRank();
+
+        [JsonProperty("last_best_pp_country_ranking")]
+        public BestRank LastBestPPCountryRank { get; set; } = new BestRank();
+
+    }
+
+    public class BestRank
+    {
+        [JsonProperty("rank")]
+        public int Rank { get; set; } = 0;
+
+        [JsonProperty("created_time")]
+        public DateTime CreatedTime { get; set; } = DateTime.Now;
     }
 
     public class OsuPlayerData
@@ -65,6 +89,9 @@ namespace DSRecentAct.Model
 
         [JsonProperty("username")]
         public string userName { get; set; }
+
+        [JsonProperty("join_date")]
+        public string joinDate { get; set; }
 
         [JsonProperty("count300")]
         public int count300 { get; set; }
@@ -126,10 +153,10 @@ namespace DSRecentAct.Model
         public string displayHtml { get; set; }
 
         [JsonProperty("beatmap_id")]
-        public int beatmapId { get; set; }
+        public string beatmapId { get; set; }
 
         [JsonProperty("beatmapset_id")]
-        public int beatmapsetId { get; set; }
+        public string beatmapsetId { get; set; }
 
         [JsonProperty("date")]
         public DateTime date { get; set; }

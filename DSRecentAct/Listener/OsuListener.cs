@@ -1,18 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DSRecentAct.Memory;
 using DSRecentAct.Model;
 using DSRecentAct.utils;
 
 namespace DSRecentAct.Listener
 {
-    class OsuListener
+    public class OsuListener
     {
         public WorkerModel OsuWorker;
-        
+
         public enum OsuStatus : int
         {
             Unkonwn = -1,

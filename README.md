@@ -29,7 +29,7 @@ Osu! Sync.exe Plugin
 | DSRA-countRankSH | Rank SH count | 1234567 |
 | DSRA-countRankSSH | Rank SSH count | 1234567 |
 | DSRA-RE | 最新RK資訊 | LOLICON achieved rank 516 on Nanahira - Chikatto Chika Chika |
-| DSRA-RE-A | 最新RK資訊(排名資訊) | 516 |
+| DSRA-RE-A | 最新RK資訊(排名資訊) | LOLICON achieved rank 516 |
 | DSRA-RE-B | 最新RK資訊(圖譜名稱) |  Nanahira - Chikatto Chika Chika |
 | DSRA-ppRank-g | PP排名進步值 | +123 |
 | DSRA-ppCountryRank-g | 國家排名進步值 | (-99)) |

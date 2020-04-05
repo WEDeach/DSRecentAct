@@ -21,8 +21,8 @@ namespace DSRecentAct
     [SyncPluginID("607a03aa-23c5-4ba4-b28d-c63f4ba2d013", PLUGIN_VERSION)]
     public class DSRecentAct : Plugin
     {
-        public const string PLUGIN_VERSION = "1.0.6";
-        private OsuListener OsuListener;
+        public const string PLUGIN_VERSION = "1.0.7";
+        public OsuListener OsuListener;
 
         private string OsuUserName;
 
@@ -36,6 +36,7 @@ namespace DSRecentAct
         private OsuStatus lastStatus;
         private bool isReplayMode = false;
         private bool isUnRankMode = false;
+        private bool isSelectSongLast = false;
         private ModsInfo current_mod;
 
         private bool selfORTDP = true;
@@ -57,6 +58,7 @@ namespace DSRecentAct
         {
             Logger.WriteColor(this.Name + " 初始化~   作者: " + this.Author, ConsoleColor.Yellow);
             OsuListener = new OsuListener();
+            ReflectorModel.OsuListener = OsuListener;
             OsuListener.OsuWorker.AddWork(TryFixStatusChange);
 
             GetPlayerData();
@@ -151,8 +153,17 @@ namespace DSRecentAct
             currentStatus = status;
             lastStatus = last_status;
             if (last_status == status) return;
-            if(Setting.DebugMode) Logger.LogInfomation($"OnStatusChange: 狀態:{status}");
-            if (((selfORTDP && last_status == OsuStatus.Playing && status == OsuStatus.Rank) || (!selfORTDP && last_status == OsuStatus.Playing && status == OsuStatus.SelectSong)) && ((!isReplayMode && !isUnRankMode) || Setting.DebugMode))
+            if(Setting.DebugMode) Logger.LogInfomation($"OnStatusChange: 狀態:{status} (前次狀態: {last_status})");
+            if (
+                (
+                 (last_status == OsuStatus.Playing && status == OsuStatus.Rank) || 
+                 (!selfORTDP && (
+                  (last_status == OsuStatus.Rank && status == OsuStatus.SelectSong) || (last_status == OsuStatus.Rank && status == OsuStatus.MatchSetup)
+                  )
+                 )
+                ) && (
+                 (!isReplayMode && !isUnRankMode) || Setting.DebugMode)
+                )
             {
                 var loopc = 0;
                 var loopmc = 5;
@@ -172,22 +183,22 @@ namespace DSRecentAct
                     if (Setting.DebugMode) Logger.Error($"無法獲得成績...");
                 }
             }
-            else if ((last_status == OsuStatus.Rank) && (status == OsuStatus.Playing))
+
+            if (isSelectSongLast && (last_status == OsuStatus.Rank) && (status == OsuStatus.Playing))
             {
                 isReplayMode = true;
+                if (Setting.DebugMode) Logger.LogInfomation($"isReplayMode: On");
             }
-            else if (status == OsuStatus.SelectSong || status == OsuStatus.MatchSetup)
+
+            if (status == OsuStatus.SelectSong || status == OsuStatus.MatchSetup)
             {
+                if (Setting.DebugMode && isReplayMode) Logger.LogInfomation($"isReplayMode: Off");
                 isReplayMode = false;
+                isSelectSongLast = true;
             }
             else
             {
-                if (current_mod.Mod != ModsInfo.Mods.Unknown || current_mod.Mod != ModsInfo.Mods.None)
-                {
-                    
-                    return;
-                }
-
+                isSelectSongLast = false;
             }
         }
         private void OnCurrentModsChange(ModsInfo mod)
@@ -258,24 +269,40 @@ namespace DSRecentAct
             SavePlayerData();
         }
 
-        public static string JSON_DATA_VERSION = "v1.1.0";
+        public static string JSON_DATA_VERSION = "v1.2.0";
         private void GetPlayerData()
         {
-            if (File.Exists(@"../DSRA_PD.json")) try
-                {
-                ReflectorModel.OPD = JsonConvert.DeserializeObject<OsuPlayer>(File.ReadAllText(@"../DSRA_PD.json"));
-            }
-            catch (JsonSerializationException)
+            if (File.Exists(@"../DSRA_PD.json"))
             {
-                    switch (ReflectorModel.OPD.DataVersion)
+                Logger.LogInfomation($"即將讀取JSON資料...");
+                try
+                {
+                    ReflectorModel.OPD = JsonConvert.DeserializeObject<OsuPlayer>(File.ReadAllText(@"../DSRA_PD.json"));
+                }
+                catch
+                {
+                    try
                     {
-                        case "v1.0.0":
-                            ReflectorModel.OPD.Data = JsonConvert.DeserializeObject<List<OsuPlayerData>>(File.ReadAllText(@"../DSRA_PD.json"));
-                            ReflectorModel.OPD.DataVersion = JSON_DATA_VERSION;
-                            break;
+                        ReflectorModel.OPD.Data = JsonConvert.DeserializeObject<List<OsuPlayerData>>(File.ReadAllText(@"../DSRA_PD.json")); // v1.0.0
                     }
+                    catch (Exception e)
+                    {
+                        Logger.LogInfomation($"JSON資料讀取失敗: {e}");
+                        ReflectorModel.OPD = new OsuPlayer()
+                        {
+                            DataVersion = JSON_DATA_VERSION
+                        };
+                    }
+                }
+
             }
-            
+            else
+            {
+                ReflectorModel.OPD = new OsuPlayer()
+                {
+                    DataVersion = JSON_DATA_VERSION
+                };
+            }
             Logger.LogInfomation($"JSON資料: {ReflectorModel.OPD.DataVersion}");
         }
         private void SavePlayerData()

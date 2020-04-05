@@ -34,7 +34,9 @@ namespace DSRecentAct.Model
                 "DSRA-RE-A",
                 "DSRA-RE-B",
                 "DSRA-ppRank-g",
-                "DSRA-ppCountryRank-g"
+                "DSRA-ppCountryRank-g",
+                "DSRA-ppRank-b",
+                "DSRA-ppCountryRank-b"
             };
         public MemoryMappedFile[] _mmfs = new MemoryMappedFile[_mmfName.Count];
         public void SetupMmf()
@@ -103,11 +105,19 @@ namespace DSRecentAct.Model
                     if (f.ppCountryRank - player.ppCountryRank > 0) gap2 = $"+{gap2}";
                     if (f.ppRank - player.ppRank != 0) ReflectorModel.OPD.LastPPRankChange = $"{gap}";
                     if (f.ppCountryRank - player.ppCountryRank != 0) ReflectorModel.OPD.LastPPCountryRankChange = $"{gap2}";
+                    
 
                     if (Setting.DebugMode) Logger.LogInfomation($"比對完成");
                 }
+
+                if (ReflectorModel.OPD.LastBestPPRank.Rank <= 0 || player.ppRank < ReflectorModel.OPD.LastBestPPRank.Rank) ReflectorModel.OPD.LastBestPPRank = new BestRank() { Rank = player.ppRank };
+                if (ReflectorModel.OPD.LastBestPPCountryRank.Rank <= 0 || player.ppCountryRank < ReflectorModel.OPD.LastBestPPCountryRank.Rank) ReflectorModel.OPD.LastBestPPCountryRank = new BestRank() { Rank = player.ppCountryRank };
+
                 streamWriters[19].Write($"({ReflectorModel.OPD.LastPPRankChange})");
                 streamWriters[20].Write($"({ReflectorModel.OPD.LastPPCountryRankChange})");
+                if(ReflectorModel.OPD.LastBestPPRank.Rank > 0) streamWriters[21].Write($"#{ReflectorModel.OPD.LastBestPPRank.Rank}({ReflectorModel.OPD.LastBestPPRank.CreatedTime.ToString("MM/dd/yyyy")})");
+                if (ReflectorModel.OPD.LastBestPPCountryRank.Rank > 0) streamWriters[22].Write($"#{ReflectorModel.OPD.LastBestPPCountryRank.Rank}({ReflectorModel.OPD.LastBestPPCountryRank.CreatedTime.ToString("MM/dd/yyyy")})");
+
                 if (Setting.DebugMode) Logger.LogInfomation($"更新MMF完成");
             }
             else
