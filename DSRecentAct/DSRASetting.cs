@@ -13,11 +13,16 @@ namespace DSRecentAct
     {
         public ConfigurationElement OsuApiToken
         {
-                get => Setting.OsuApiToken.ToString();
-                set => Setting.OsuApiToken = value.ToString();
-            }
+            get => Setting.OsuApiToken.ToString();
+            set => Setting.OsuApiToken = value.ToString();
+        }
+        public ConfigurationElement UserName
+        {
+            get => Setting.UserName.ToString();
+            set => Setting.UserName = value.ToString();
+        }
 
-            [Bool(RequireRestart = true)]
+        [Bool(RequireRestart = true)]
         public ConfigurationElement DebugMode
         {
             get => Setting.DebugMode.ToString();
@@ -48,6 +53,7 @@ namespace DSRecentAct
     class Setting
     {
         public static string OsuApiToken = "";
+        public static string UserName = "";
         public static bool DebugMode = false;
 
         public static object SongsPath { get; internal set; }

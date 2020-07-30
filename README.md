@@ -32,4 +32,4 @@ Osu! Sync.exe Plugin
 | DSRA-RE-A | 最新RK資訊(排名資訊) | LOLICON achieved rank 516 |
 | DSRA-RE-B | 最新RK資訊(圖譜名稱) |  Nanahira - Chikatto Chika Chika |
 | DSRA-ppRank-g | PP排名進步值 | +123 |
-| DSRA-ppCountryRank-g | 國家排名進步值 | (-99)) |
+| DSRA-currentMapTotalScore | 當前地圖歷史最佳成績 | 沒有遊玩紀錄 |

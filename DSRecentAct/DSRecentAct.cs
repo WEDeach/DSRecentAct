@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static DSRecentAct.Model.OsuApiModel;
 using static OsuRTDataProvider.Listen.OsuListenerManager;
 
 namespace DSRecentAct
@@ -86,10 +87,12 @@ namespace DSRecentAct
                     OsuRTDataProvider.OsuRTDataProviderPlugin reader = plugin as OsuRTDataProvider.OsuRTDataProviderPlugin;
                     ReflectorModel.ORTDP = reader;
 
-                    ReflectorModel.ORTDP.ListenerManager.OnBeatmapChanged += OnCurrentBeatmapChange;
+                    ReflectorModel.ORTDP.ListenerManager.OnPlayerChanged += OnPlayerChanged;
                     ReflectorModel.ORTDP.ListenerManager.OnStatusChanged += OnStatusChange;
                     ReflectorModel.ORTDP.ListenerManager.OnModsChanged += OnCurrentModsChange;
-                    ReflectorModel.ORTDP.ListenerManager.OnPlayerChanged += OnPlayerChanged;
+                    ReflectorModel.ORTDP.ListenerManager.OnBeatmapChanged += OnCurrentBeatmapChange;
+                    ReflectorModel.ORTDP.ListenerManager.OnScoreChanged += OnScoreChanged;
+                    OsuUserName = Setting.UserName;
                     return;
                 }
             }
@@ -111,6 +114,26 @@ namespace DSRecentAct
             }
         }
 
+        private void OnScoreChanged(int score)
+        {
+            ReflectorModel.CustomData.currentMapTotalScore = score;
+            if(ReflectorModel.CustomData.currentMapBestScore > 0)
+            {
+                if(currentStatus != OsuStatus.Playing)
+                {
+                    ReflectorModel.mmf.UpdateMmf(23, $"歷史高分: {ReflectorModel.CustomData.currentMapBestScore}");
+                }
+                else if(score > ReflectorModel.CustomData.currentMapBestScore)
+                {
+                    ReflectorModel.mmf.UpdateMmf(23, $"【新紀錄】{score}");
+                }
+                else
+                {
+                    ReflectorModel.mmf.UpdateMmf(23, $"{ReflectorModel.CustomData.currentMapBestScore}/{score}");
+                }
+            }
+        }
+
         private void OnCurrentBeatmapChange(Beatmap beatmap)
         {
             if (beatmap == Beatmap.Empty || string.IsNullOrWhiteSpace(beatmap?.FilenameFull))
@@ -119,12 +142,28 @@ namespace DSRecentAct
                 return;
             }
 
-            beatmapID = beatmap.BeatmapID;
+            if (beatmapID != beatmap.BeatmapID)
+            {
+                beatmapID = beatmap.BeatmapID;
+                var od = ReflectorModel.OsuApi.GetUserBeatmapScore(OsuUserName, beatmapID);
+                ReflectorModel.CustomData.currentMapBestScore = od.totalScore;
+                ReflectorModel.CustomData.currentMapBestPp = od.pp;
+                ReflectorModel.CustomData.currentMapBestCombo = od.maxCombo;
+                if(od.totalScore > 0)
+                {
+                    Logger.LogInfomation($"歷史高分: {od.totalScore}");
+                    Logger.LogInfomation($"歷史PP: {od.pp}");
+                    Logger.LogInfomation($"歷史Rank: {od.Rank}");
+                    ReflectorModel.mmf.UpdateMmf(23, $"歷史高分: {od.totalScore}");
+                }
+                else
+                {
+                    ReflectorModel.mmf.UpdateMmf(23, "沒有遊玩紀錄");
+                }
+            }
             beatmapSetID = beatmap.BeatmapSetID;
             OsuFilePath = beatmap.FilenameFull;
             current_beatmap = beatmap;
-
-            Logger.LogInfomation($"OnCurrentBeatmapChange: {beatmap.Title}");
         }
 
         public void TryFixStatusChange()
@@ -135,7 +174,6 @@ namespace DSRecentAct
                 selfORTDP = true;
                 if (now_status != currentStatus)
                 {
-                    if (Setting.DebugMode) Logger.LogInfomation($"狀態不同步...");
                     OnStatusChange(currentStatus, now_status);
                 }
             }
@@ -156,14 +194,11 @@ namespace DSRecentAct
             if(Setting.DebugMode) Logger.LogInfomation($"OnStatusChange: 狀態:{status} (前次狀態: {last_status})");
             if (
                 (
-                 (last_status == OsuStatus.Playing && status == OsuStatus.Rank) || 
-                 (!selfORTDP && (
-                  (last_status == OsuStatus.Rank && status == OsuStatus.SelectSong) || (last_status == OsuStatus.Rank && status == OsuStatus.MatchSetup)
-                  )
-                 )
-                ) && (
-                 (!isReplayMode && !isUnRankMode) || Setting.DebugMode)
-                )
+                    (last_status == OsuStatus.Playing && status == OsuStatus.Rank) || (!selfORTDP && (
+                        (last_status == OsuStatus.Rank && status == OsuStatus.SelectSong) || (last_status == OsuStatus.Rank && status == OsuStatus.MatchSetup)
+                    ))
+                ) && ((!isReplayMode && !isUnRankMode) || Setting.DebugMode)
+            )
             {
                 var loopc = 0;
                 var loopmc = 5;
